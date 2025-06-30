@@ -356,7 +356,7 @@ Para dúvidas ou problemas:
 
 ## 📄 Licença
 
-Este projeto é desenvolvido para uso interno da TSEA Energia. Todos os direitos reservados.
+Apenas um teste visual e prático para ajudar colaboradores internos.
 
 ---
 
