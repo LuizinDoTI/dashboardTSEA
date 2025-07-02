@@ -1,4 +1,4 @@
-# Dashboard de Análise de Testes - TSEA Energia (Versão 2.0)
+# Dashboard de Análise de Testes - TSEA Energia Versão 1
 
 **Autor:** Luiz  
 **Data da Versão:** 29 de Junho de 2025  
@@ -6,7 +6,7 @@
 
 ## 📋 Descrição
 
-Este é um dashboard web interativo desenvolvido em Python com Streamlit, projetado especificamente para analisar resultados de testes de transformadores de potência da TSEA Energia. A versão 2.0 foi completamente refatorada para ser mais modular, educativa e fácil de modificar.
+Este é um dashboard web interativo desenvolvido em Python com Streamlit, projetado especificamente para analisar resultados de testes de transformadores de potência da TSEA Energia. A versão 1 foi completamente refatorada para ser mais modular, educativa e fácil de modificar.
 
 ### 🎯 Objetivos
 
@@ -356,7 +356,7 @@ Para dúvidas ou problemas:
 
 ## 📄 Licença
 
-Este projeto é desenvolvido para uso interno da TSEA Energia. Todos os direitos reservados.
+Apenas um teste visual e prático para ajudar colaboradores internos.
 
 ---
 
