@@ -214,59 +214,116 @@ class DashboardMetrics:
             )
     
     def exibir_metricas_detalhadas(self):
-        """Exibe métricas detalhadas em um expander"""
+        """Exibe métricas detalhadas em um expander com balões coloridos customizados"""
         with st.expander("📈 Métricas Detalhadas", expanded=False):
             metricas_avancadas = self.calcular_metricas_avancadas()
-            
             if not metricas_avancadas:
                 st.warning("Nenhum dado disponível para métricas detalhadas")
                 return
-            
+
             # Estatísticas de eficiência
             st.subheader("⚡ Estatísticas de Eficiência")
             col1, col2, col3, col4 = st.columns(4)
-            
             with col1:
-                st.metric("Mínima", f"{metricas_avancadas['eficiencia_min']:.2f}%")
+                self.card_metric(
+                    "Mínima",
+                    f"{metricas_avancadas['eficiencia_min']:.2f}%",
+                    cor_fundo="#e0f7fa",
+                    cor_borda="#00b894",
+                    icone="⚡",
+                    cor_texto="#222"
+                )
             with col2:
-                st.metric("Máxima", f"{metricas_avancadas['eficiencia_max']:.2f}%")
+                self.card_metric(
+                    "Máxima",
+                    f"{metricas_avancadas['eficiencia_max']:.2f}%",
+                    cor_fundo="#d0f2ff",
+                    cor_borda="#0984e3",
+                    icone="⚡",
+                    cor_texto="#222"
+                )
             with col3:
-                st.metric("Q1 (25%)", f"{metricas_avancadas['eficiencia_q25']:.2f}%")
+                self.card_metric(
+                    "Q1 (25%)",
+                    f"{metricas_avancadas['eficiencia_q25']:.2f}%",
+                    cor_fundo="#eafaf1",
+                    cor_borda="#1ecb4f",
+                    icone="⚡",
+                    cor_texto="#222"
+                )
             with col4:
-                st.metric("Q3 (75%)", f"{metricas_avancadas['eficiencia_q75']:.2f}%")
-            
+                self.card_metric(
+                    "Q3 (75%)",
+                    f"{metricas_avancadas['eficiencia_q75']:.2f}%",
+                    cor_fundo="#e3e0fa",
+                    cor_borda="#6c63ff",
+                    icone="⚡",
+                    cor_texto="#222"
+                )
+
             # Estatísticas de temperatura
             st.subheader("🌡️ Estatísticas de Temperatura")
             col1, col2, col3 = st.columns(3)
-            
             with col1:
-                st.metric("Mínima", f"{metricas_avancadas['temperatura_min']:.1f}°C")
+                self.card_metric(
+                    "Mínima",
+                    f"{metricas_avancadas['temperatura_min']:.1f}°C",
+                    cor_fundo="#ffe0e0",
+                    cor_borda="#ff4b4b",
+                    icone="🌡️",
+                    cor_texto="#222"
+                )
             with col2:
-                st.metric("Máxima", f"{metricas_avancadas['temperatura_max']:.1f}°C")
+                self.card_metric(
+                    "Máxima",
+                    f"{metricas_avancadas['temperatura_max']:.1f}°C",
+                    cor_fundo="#fff3e0",
+                    cor_borda="#f7b731",
+                    icone="🌡️",
+                    cor_texto="#222"
+                )
             with col3:
-                st.metric("Desvio Padrão", f"{metricas_avancadas['temperatura_std']:.1f}°C")
-            
+                self.card_metric(
+                    "Desvio Padrão",
+                    f"{metricas_avancadas['temperatura_std']:.1f}°C",
+                    cor_fundo="#ffe0fa",
+                    cor_borda="#a29bfe",
+                    icone="🌡️",
+                    cor_texto="#222"
+                )
+
             # Testes fora de especificação
             st.subheader("⚠️ Testes Fora de Especificação")
             col1, col2, col3 = st.columns(3)
-            
             with col1:
-                st.metric(
+                self.card_metric(
                     "Temperatura Alta",
                     metricas_avancadas['testes_fora_spec_temp'],
-                    help=f"Testes com temperatura > {METRICAS_CONFIG['temperatura_maxima']}°C"
+                    cor_fundo="#fffbe0",
+                    cor_borda="#f7b731",
+                    icone="⚠️",
+                    cor_texto="#222",
+                    help_text=f"Testes com temperatura > {METRICAS_CONFIG['temperatura_maxima']}°C"
                 )
             with col2:
-                st.metric(
+                self.card_metric(
                     "Eficiência Baixa",
                     metricas_avancadas['testes_fora_spec_efic'],
-                    help=f"Testes com eficiência < {METRICAS_CONFIG['eficiencia_minima']}%"
+                    cor_fundo="#e0f7fa",
+                    cor_borda="#00b894",
+                    icone="⚠️",
+                    cor_texto="#222",
+                    help_text=f"Testes com eficiência < {METRICAS_CONFIG['eficiencia_minima']}%"
                 )
             with col3:
-                st.metric(
+                self.card_metric(
                     "Perdas Altas",
                     metricas_avancadas['testes_fora_spec_perdas'],
-                    help=f"Testes com perdas > {METRICAS_CONFIG['perdas_maximas']} kW"
+                    cor_fundo="#ffe0e0",
+                    cor_borda="#ff4b4b",
+                    icone="⚠️",
+                    cor_texto="#222",
+                    help_text=f"Testes com perdas > {METRICAS_CONFIG['perdas_maximas']} kW"
                 )
     
     def gerar_relatorio_resumo(self) -> str:

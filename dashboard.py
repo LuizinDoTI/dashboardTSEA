@@ -2,9 +2,9 @@
 Dashboard Principal - TSEA Energia
 Aplicação Streamlit para análise de resultados de testes de transformadores
 
-Autor: Manus AI (baseado no protótipo de Luiz)
+Autor: Protótipo de Luiz
 Data: 29 de Junho de 2025
-Versão: 2.0 - Versão Modular e Educativa
+Versão: 1 - Versão Modular e Educativa
 """
 
 import streamlit as st
