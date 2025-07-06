@@ -1,8 +1,8 @@
 # Guia Completo de Modificação e Aprendizado - Dashboard TSEA
 
-**Autor:** Manus AI  
+**Autor:** Luiz  
 **Data:** 29 de Junho de 2025  
-**Versão:** 2.0 - Guia Educativo  
+**Versão:** 1.0 - Guia Educativo  
 
 ## 📚 Índice
 
@@ -1353,5 +1353,4 @@ Este guia fornece uma base sólida para entender, modificar e expandir o dashboa
 
 Lembre-se de que este é um projeto vivo. Continue experimentando, aprendendo e melhorando. A modularidade do código facilita a evolução contínua do sistema.
 
-**Boa sorte em sua jornada de aprendizado e desenvolvimento!** 🚀
 
