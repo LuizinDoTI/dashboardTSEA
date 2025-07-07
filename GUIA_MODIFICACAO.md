@@ -1,8 +1,8 @@
 # Guia Completo de Modificação e Aprendizado - Dashboard TSEA
 
-**Autor:** Manus AI  
+**Autor:** Luiz  
 **Data:** 29 de Junho de 2025  
-**Versão:** 2.0 - Guia Educativo  
+**Versão:** 1.0 - Guia Educativo  
 
 ## 📚 Índice
 
