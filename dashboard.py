@@ -4,7 +4,7 @@ Aplicação Streamlit para análise de resultados de testes de transformadores
 
 Autor: Protótipo de Luiz
 Data: 29 de Junho de 2025
-Versão: 1 - Versão Modular e Educativa
+Versão: 2.0 - Integração com Agente de IA
 """
 
 import streamlit as st
@@ -23,6 +23,8 @@ from utils import (
     DataExporter, DataValidator, SessionManager, 
     configurar_pagina, criar_sidebar_info, criar_alerta_qualidade, log_acao
 )
+# Importação do novo agente de IA
+from ai_agent import AIAgent
 
 # Suprime warnings desnecessários
 warnings.filterwarnings('ignore')
@@ -41,7 +43,6 @@ def main():
     st.title(TEXTOS_INTERFACE['titulo_principal'])
     st.markdown(TEXTOS_INTERFACE['subtitulo'])
     
-    # Log da ação
     log_acao("Acesso ao dashboard", "Usuário acessou a página principal")
     
     # Carregamento dos dados
@@ -85,7 +86,6 @@ def main():
     # Salva filtros na sessão
     SessionManager.salvar_filtros(filtros)
     
-    # Log da aplicação de filtros
     log_acao("Filtros aplicados", f"Registros resultantes: {len(df_filtrado)}")
     
     # Verifica se há dados após filtros
@@ -97,6 +97,9 @@ def main():
     # Exibe resumo dos filtros aplicados
     resumo_filtros = filtros_manager.obter_resumo_filtros(filtros)
     st.info(f"📊 {resumo_filtros}")
+
+    # Seção de Resumo da IA
+    exibir_secao_ia_resumo(df_filtrado)
     
     # Seção de métricas
     exibir_secao_metricas(df_filtrado)
@@ -104,8 +107,8 @@ def main():
     # Seção de visualizações
     exibir_secao_visualizacoes(df_filtrado)
     
-    # Seção de dados detalhados
-    exibir_secao_dados(df_filtrado)
+    # Seção de dados detalhados e diagnóstico por IA
+    exibir_secao_dados_e_diagnostico(df_filtrado)
     
     # Sidebar com informações adicionais
     criar_sidebar_info()
@@ -123,7 +126,6 @@ def carregar_dados_dashboard() -> pd.DataFrame:
     """
     try:
         # Por padrão, usa dados fictícios
-        # Para usar dados reais, modifique esta função
         df = obter_dados(fonte='ficticios')
         
         if not df.empty:
@@ -137,6 +139,20 @@ def carregar_dados_dashboard() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def exibir_secao_ia_resumo(df: pd.DataFrame):
+    """
+    Exibe o resumo executivo gerado pela IA.
+    """
+    with st.expander("🤖 Resumo Executivo por IA (Gemini)", expanded=True):
+        with st.spinner("Analisando dados e gerando insights..."):
+            agent = AIAgent(df)
+            resumo = agent.gerar_resumo_executivo()
+            if resumo:
+                st.markdown(resumo)
+            else:
+                st.info("Não foi possível gerar o resumo. Verifique a configuração da API.")
+
+
 def exibir_secao_metricas(df: pd.DataFrame):
     """
     Exibe a seção de métricas do dashboard
@@ -146,16 +162,8 @@ def exibir_secao_metricas(df: pd.DataFrame):
     """
     metrics_manager = DashboardMetrics(df)
     
-    # Métricas principais
     metrics_manager.exibir_metricas_principais()
-    
-    # Métricas detalhadas
     metrics_manager.exibir_metricas_detalhadas()
-    
-    # Relatório resumo
-    with st.expander("📋 Relatório Resumo", expanded=False):
-        relatorio = metrics_manager.gerar_relatorio_resumo()
-        st.markdown(relatorio)
 
 
 def exibir_secao_visualizacoes(df: pd.DataFrame):
@@ -168,154 +176,86 @@ def exibir_secao_visualizacoes(df: pd.DataFrame):
     st.markdown("---")
     st.header(TEXTOS_INTERFACE['graficos_titulo'])
     
-    # Seletor de visualizações
-    col1, col2 = st.columns([3, 1])
+    visualizacoes_disponiveis = {
+        'eficiencia_tempo': '📈 Eficiência vs Tempo',
+        'perdas_temperatura': '🌡️ Perdas vs Temperatura',
+        'distribuicao_modelos': '🥧 Distribuição por Modelo',
+        'aprovacao_modelo': '✅ Taxa de Aprovação',
+        'histograma_eficiencia': '📊 Histograma Eficiência',
+        'boxplot_temperatura': '📦 BoxPlot Temperatura',
+        'tendencia_mensal': '📅 Tendência Mensal',
+        'correlacao_potencia': '⚡ Potência vs Perdas'
+    }
     
-    with col2:
-        visualizacoes_disponiveis = {
-            'eficiencia_tempo': '📈 Eficiência vs Tempo',
-            'perdas_temperatura': '🌡️ Perdas vs Temperatura',
-            'distribuicao_modelos': '🥧 Distribuição por Modelo',
-            'aprovacao_modelo': '✅ Taxa de Aprovação',
-            'histograma_eficiencia': '📊 Histograma Eficiência',
-            'boxplot_temperatura': '📦 BoxPlot Temperatura',
-            'tendencia_mensal': '📅 Tendência Mensal',
-            'correlacao_potencia': '⚡ Potência vs Perdas'
-        }
-        
-        graficos_selecionados = st.multiselect(
-            "Selecione os gráficos:",
-            options=list(visualizacoes_disponiveis.keys()),
-            default=['eficiencia_tempo', 'perdas_temperatura', 'distribuicao_modelos', 'aprovacao_modelo'],
-            format_func=lambda x: visualizacoes_disponiveis[x]
-        )
+    graficos_selecionados = st.multiselect(
+        "Selecione os gráficos para exibir:",
+        options=list(visualizacoes_disponiveis.keys()),
+        default=['eficiencia_tempo', 'distribuicao_modelos', 'aprovacao_modelo', 'perdas_temperatura'],
+        format_func=lambda x: visualizacoes_disponiveis[x]
+    )
     
-    # Exibe gráficos selecionados
     if graficos_selecionados:
-        # Organiza gráficos em grid
-        num_graficos = len(graficos_selecionados)
-        
-        if num_graficos == 1:
-            fig = criar_visualizacao(graficos_selecionados[0], df)
-            st.plotly_chart(fig, use_container_width=True)
-        
-        elif num_graficos == 2:
-            col1, col2 = st.columns(2)
-            with col1:
-                fig1 = criar_visualizacao(graficos_selecionados[0], df)
-                st.plotly_chart(fig1, use_container_width=True)
-            with col2:
-                fig2 = criar_visualizacao(graficos_selecionados[1], df)
-                st.plotly_chart(fig2, use_container_width=True)
-        
-        elif num_graficos >= 3:
-            # Primeira linha
-            col1, col2 = st.columns(2)
-            with col1:
-                fig1 = criar_visualizacao(graficos_selecionados[0], df)
-                st.plotly_chart(fig1, use_container_width=True)
-            with col2:
-                fig2 = criar_visualizacao(graficos_selecionados[1], df)
-                st.plotly_chart(fig2, use_container_width=True)
-            
-            # Segunda linha e subsequentes
-            for i in range(2, num_graficos, 2):
-                col1, col2 = st.columns(2)
-                with col1:
-                    fig = criar_visualizacao(graficos_selecionados[i], df)
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                if i + 1 < num_graficos:
-                    with col2:
-                        fig = criar_visualizacao(graficos_selecionados[i + 1], df)
-                        st.plotly_chart(fig, use_container_width=True)
-    
+        num_cols = 2
+        cols = st.columns(num_cols)
+        for i, grafico_key in enumerate(graficos_selecionados):
+            with cols[i % num_cols]:
+                fig = criar_visualizacao(grafico_key, df)
+                st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Selecione pelo menos um gráfico para visualizar.")
 
 
-def exibir_secao_dados(df: pd.DataFrame):
+def exibir_secao_dados_e_diagnostico(df: pd.DataFrame):
     """
-    Exibe a seção de dados detalhados
-    
-    Args:
-        df: DataFrame com os dados filtrados
+    Exibe a seção de dados detalhados e o diagnóstico por IA.
     """
     st.markdown("---")
-    st.header(TEXTOS_INTERFACE['dados_titulo'])
-    
-    # Opções de exibição
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        mostrar_estatisticas = st.checkbox("📊 Mostrar Estatísticas", value=True)
-    
-    with col2:
-        num_registros = st.selectbox(
-            "Registros por página:",
-            options=[10, 25, 50, 100, len(df)],
-            index=2
-        )
-    
-    with col3:
-        ordenar_por = st.selectbox(
-            "Ordenar por:",
-            options=df.columns.tolist(),
-            index=df.columns.tolist().index('Data_Teste') if 'Data_Teste' in df.columns else 0
-        )
-    
-    # Estatísticas descritivas
-    if mostrar_estatisticas:
-        with st.expander("📈 Estatísticas Descritivas", expanded=False):
-            colunas_numericas = df.select_dtypes(include=[np.number]).columns
-            if len(colunas_numericas) > 0:
-                st.dataframe(df[colunas_numericas].describe())
-            else:
-                st.info("Nenhuma coluna numérica encontrada para estatísticas.")
-    
-    # Tabela de dados
-    df_ordenado = df.sort_values(by=ordenar_por, ascending=False)
-    
-    if num_registros < len(df):
+    st.header("🔬 Análise Detalhada e Diagnóstico por IA")
+
+    tab1, tab2 = st.tabs(["Dados Detalhados", "🤖 Diagnóstico de Ativo por IA"])
+
+    with tab1:
+        st.subheader(TEXTOS_INTERFACE['dados_titulo'])
+        col1, col2 = st.columns(2)
+        with col1:
+            num_registros = st.selectbox(
+                "Registros por página:",
+                options=[10, 25, 50, 100, len(df)],
+                index=0, key="paginacao"
+            )
+        with col2:
+            ordenar_por = st.selectbox(
+                "Ordenar por:",
+                options=df.columns.tolist(),
+                index=df.columns.tolist().index('Data_Teste')
+            )
+        
+        df_ordenado = df.sort_values(by=ordenar_por, ascending=False)
         st.dataframe(df_ordenado.head(num_registros), use_container_width=True)
-        st.info(f"Exibindo {num_registros} de {len(df)} registros. Use os filtros para refinar a seleção.")
-    else:
-        st.dataframe(df_ordenado, use_container_width=True)
-    
-    # Botões de download
-    st.markdown("### 📥 Exportar Dados")
-    DataExporter.criar_botoes_download(df)
-    
-    # Log da visualização de dados
-    log_acao("Dados visualizados", f"Registros exibidos: {min(num_registros, len(df))}")
+        DataExporter.criar_botoes_download(df)
 
+    with tab2:
+        st.subheader("Análise de Causa Raiz para um Transformador Específico")
+        
+        ids_reprovados = df[df['Status_Aprovacao'] == 'Reprovado']['ID_Transformador'].unique()
+        ids_outros = df[~df['ID_Transformador'].isin(ids_reprovados)]['ID_Transformador'].unique()
+        
+        id_selecionado = st.selectbox(
+            "Selecione o ID do Transformador para análise:",
+            options=np.concatenate([ids_reprovados, ids_outros]),
+            help="Transformadores com status 'Reprovado' aparecem primeiro na lista."
+        )
 
-def exibir_configuracoes_avancadas():
-    """Exibe configurações avançadas na sidebar"""
-    with st.sidebar.expander("⚙️ Configurações Avançadas", expanded=False):
-        st.markdown("### 🎨 Personalização")
-        
-        # Tema dos gráficos
-        tema_grafico = st.selectbox(
-            "Tema dos gráficos:",
-            options=['plotly_white', 'plotly_dark', 'ggplot2', 'seaborn'],
-            index=0
-        )
-        
-        # Altura dos gráficos
-        altura_graficos = st.slider(
-            "Altura dos gráficos:",
-            min_value=300,
-            max_value=800,
-            value=400,
-            step=50
-        )
-        
-        # Salva configurações na sessão
-        st.session_state.tema_grafico = tema_grafico
-        st.session_state.altura_graficos = altura_graficos
+        if st.button(f"Gerar Diagnóstico para {id_selecionado}", type="primary"):
+            with st.spinner(f"A IA está realizando uma análise completa do transformador {id_selecionado}..."):
+                agent = AIAgent(df)
+                diagnostico = agent.gerar_diagnostico_transformador(id_selecionado)
+                if diagnostico:
+                    st.markdown(diagnostico)
+                else:
+                    st.error("Não foi possível gerar o diagnóstico.")
+                log_acao("Diagnóstico IA gerado", f"Ativo: {id_selecionado}")
 
 
 if __name__ == "__main__":
     main()
-
